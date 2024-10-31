@@ -1,0 +1,319 @@
+---
+title: "第一次作业你的报告题目"
+CJKmainfont: Songti SC
+author: "wanghaochong"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document:
+    toc: yes
+  html_document:
+    code_folding: show
+    fig_caption: yes
+    fig_width: 10
+    highlight: tango
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+---
+```{r setup, include = FALSE,echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE,error = FALSE, warning = FALSE, message = FALSE,
+                      out.width = "100%", split = FALSE, fig.align = "center")
+#load library
+library(tidyverse)
+install.packages("kableExtra")
+library(kableExtra)
+library(lubridate)
+library(scales)
+library(plotly)
+install.packages("patchwork")
+library(patchwork)
+install.packages("ggrepel")
+library(ggrepel)
+
+```
+
+# 你的主要发现
+
+1. 发现1
+
+1. 发现2
+  
+1. 发现3
+    
+
+# 数据介绍
+
+本报告**链家**数据获取方式如下：
+    
+报告人在2023年9月12日获取了[链家武汉二手房网站](https://wh.lianjia.com/ershoufang/)数据。
+    
+- 链家二手房网站默认显示100页，每页30套房产，因此本数据包括3000套房产信息；
+    
+- 数据包括了页面可见部分的文本信息，具体字段及说明见作业说明。
+
+ **说明：**数据仅用于教学；由于不清楚链家数据的展示规则，因此数据可能并不是武汉二手房市场的随机抽样，结论很可能有很大的偏差，甚至可能是错误的。
+    
+```{r}
+# 载入数据和预处理
+
+lj<- read_csv("2023-09-12_cleaned.csv")
+# EDA ---------------------------------------------------------------------
+
+## 如下语句可以解决画图中的中文显示问题，当然你可以用showtext包来解决
+
+theme_set(theme(text = element_text(family="Songti SC",size = 10))) #这里family设置成你系统中的中文字体名。
+
+# 做一些数据预处理，比如把字符型变成factor。
+lj
+lj$property_name = factor(lj$property_name)
+lj$property_region = factor(lj$property_region)
+lj$directions1 = factor(lj$directions1)
+lj$directions2 = factor(lj$directions2)
+lj$decoration = factor(lj$decoration)
+lj$property_t_height = factor(lj$property_t_height)
+lj$property_height = factor(lj$property_height)
+lj$property_style = factor(lj$property_style)
+
+
+```
+
+# 数据概览
+
+数据表（lj)共包括`r names(lj)`等`r ncol(lj)`个变量,共`r nrow(lj)`行。表的前10行示例如下：
+
+```{r}
+lj %>% 
+  head(10) %>%
+  kable(caption = "武汉链家二手房") %>% 
+  kable_styling()
+```
+
+各变量的简短信息：
+```{r}
+glimpse(lj)
+```
+
+各变量的简短统计：
+```{r}
+summary(lj)
+```
+
+可以看到：
+```{r}
+# 安装 wordcloud2 包
+install.packages('wordcloud2')
+
+# 加载 wordcloud2 包
+library(wordcloud2)
+
+# 统计不同房产区域的数量
+region_counts <- table(lj$property_region)
+
+# 创建词云图
+wordcloud2(region_counts, size = 0.5, color = 'random-dark')
+
+
+
+
+
+
+```
+- 直观结论1
+#白沙洲、盘龙城、四新、光谷东、四新、王家湾的房源最多
+
+- 直观结论2
+#板楼的结构最多其次是塔楼
+- ...
+
+# 探索性分析
+
+## 对卧室数对房价的影响
+
+```{r}
+# 对卧室数量进行求和、平均值、最大值、最小值、中位数、方差、标准差的计算
+result <- list(
+  sum = sum(lj$bedrooms),
+  mean = mean(lj$bedrooms),
+  max = max(lj$bedrooms),
+  min = min(lj$bedrooms),
+  median = median(lj$bedrooms),
+  var = var(lj$bedrooms),
+  sd = sd(lj$bedrooms)
+)
+
+# 输出计算结果
+result
+
+#作图
+# 计算不同房产所在区域的卧室平均数量
+region_bedrooms_mean <- aggregate(bedrooms ~ property_region, data = lj, FUN = mean)
+region_bedrooms_mean
+# 输出计算结果
+# library(tidyverse)
+# region_bedrooms <- lj %>%
+#   group_by(property_region) %>%
+#   summarise(total_bedrooms = sum(bedrooms)/sum(property_region))
+
+# 绘制不同房产所在区域的卧室数量的柱状图
+ggplot(region_bedrooms_mean, aes(x = region_bedrooms_mean$property_region, y = region_bedrooms_mean$bedrooms)) +
+  geom_bar(stat = "identity") +
+  xlab("房产所在区域") +
+  ylab("卧室数量") +
+  geom_hline(yintercept = median(lj$bedrooms))
+```
+
+发现：
+
+- 发现1
+#所有数据中，绝大部分房型还是3居室
+
+- 发现2
+#图表上看，每个地段的平均卧室数都小于3
+#
+## 地铁对房价的影响
+```{r}
+# 计算不同地铁情况的房价均值
+
+# 替换NA值为“无地铁”
+lj$near_subway <- ifelse(is.na(lj$near_subway), "无地铁", lj$near_subway)
+
+# 计算不同地铁情况的房价均值
+subway_mean <- aggregate(price_ttl ~ near_subway, data = lj, FUN = mean)
+subway_mean
+# 绘制柱状图
+ggplot(subway_mean, aes(x = near_subway, y = price_ttl)) +
+  geom_bar(stat = "identity", fill = "lightblue", color = "black") +
+  xlab("地铁情况") +
+  ylab("房价均值（单位：元）") +
+  ggtitle("地铁站对房价均值的影响") +
+  theme_minimal()  # 可选：使用简洁的主题
+
+```
+发现：
+
+- 发现1
+#近地铁的房价均值为170w左右，而无地铁的均价为140w左右
+
+- 发现2
+#地铁对房价的影响还是比较突出的
+
+## 房本是否满两年对房价的影响
+```{r}
+# 计算房本是否满两年的房价均值
+
+# 替换NA值为“未满两年”
+lj$if_2y <- ifelse(is.na(lj$if_2y), "未满两年", lj$if_2y)
+
+# 计算不同地铁情况的房价均值
+if_2y_mean <- aggregate(price_ttl ~ if_2y, data = lj, FUN = mean)
+if_2y_mean
+# 绘制柱状图
+ggplot(if_2y_mean, aes(x = if_2y, y = price_ttl)) +
+  geom_bar(stat = "identity", fill = "lightblue", color = "black") +
+  xlab("房本情况") +
+  ylab("房价均值（单位：元）") +
+  ggtitle("房本是否满两年对房价均值的影响") +
+  theme_minimal()  # 可选：使用简洁的主题
+
+```
+
+发现：
+
+- 发现1
+#未满两年的房价反而比满了两年的房价高一些
+
+- 发现2
+#房本是否满了两年对房价影响不是很大
+
+## 装修情况对房价的影响
+```{r}
+# 计算不同装修情况的房价的影响
+decoration_mean <- aggregate(price_ttl ~ decoration, data = lj, FUN = mean)
+decoration_mean
+# 绘制柱状图
+ggplot(decoration_mean, aes(x = decoration, y = price_ttl)) +
+  geom_bar(stat = "identity", fill = "lightblue", color = "black") +
+  xlab("装修情况") +
+  ylab("房价均值（单位：元）") +
+  ggtitle("装修情况对房价均值的影响") +
+  theme_minimal()  # 可选：使用简洁的主题
+
+```
+
+发现：
+
+- 发现1
+精装房的平均房价居高，相对比简装和其他房型高很多
+
+- 发现2
+精装房和毛坯房的价格区别不大，可能存在其他影响因素，比如说地段或者房屋面积等影响因素
+
+## 探索问题2
+区域、面积、单价的交互影响
+```{r}
+library(showtex)
+# 绘制不同区域的总价箱线图
+ggplot(lj, aes(x = property_region, y = price_ttl, fill = property_region)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # 如果区域名太长，可以旋转标签
+  ggtitle("不同区域对总价的影响") +
+  xlab("区域") +
+  ylab("总价")
+
+# 绘制不同面积的总价箱线图
+ggplot(lj, aes(x = building_area, y = price_ttl)) +
+  geom_boxplot() +
+  xlab("面积") +
+  ylab("总价") +
+  ggtitle("不同面积的总价箱线图")
+```
+
+发现：
+
+- 发现1
+不同区域、面积房价差异很大，没有合适的趋势
+- 发现2
+面积对房价的影响比较稳定
+
+## 探索问题3
+楼层、装修、单价的交互影响
+```{r}
+ggplot(lj, aes(x = property_height, y = price_ttl, fill = property_height)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # 如果区域名太长，可以旋转标签
+  ggtitle("不同区域对总价的影响") +
+  xlab("区域") +
+  ylab("总价")
+
+
+
+ggplot(lj, aes(x = decoration, y = price_ttl, fill = decoration)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # 如果区域名太长，可以旋转标签
+  ggtitle("装修对总价的影响") +
+  xlab("装修") +
+  ylab("总价")
+
+
+```
+发现：
+
+- 发现1
+高层的精装房价格会比较稳定，波动不会很大，比较集中
+
+- 发现2
+低层的、简装房价价格波动和差异比较大
+
+---
+
+
+# 发现总结
+单一变量的数据分析，有时候无法达到对数据的准确判断和印象因素的捕捉
+多变量的数据分析虽然复杂， 但是在综合方面可以得到有效的趋势和一些结论的推断
+
+用1-3段话总结你的发现。
+
+
+
