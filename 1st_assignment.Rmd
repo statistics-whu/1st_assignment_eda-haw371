@@ -253,7 +253,7 @@ library(showtex)
 # 绘制不同区域的总价箱线图
 ggplot(lj, aes(x = property_region, y = price_ttl, fill = property_region)) +
   geom_boxplot() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # 如果区域名太长，可以旋转标签
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # 
   ggtitle("不同区域对总价的影响") +
   xlab("区域") +
   ylab("总价")
@@ -269,9 +269,9 @@ ggplot(lj, aes(x = building_area, y = price_ttl)) +
 发现：
 
 - 发现1
-
+同区域不同面积对房价的影响不同
 - 发现2
-
+大部分的房价波动不大，少部分房价会有极端值
 ## 探索问题3
 楼层、装修、单价的交互影响
 ```{r}
