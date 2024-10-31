@@ -1,7 +1,7 @@
 ---
 title: "第一次作业你的报告题目"
 CJKmainfont: Songti SC
-author: "王灏翀"
+author: "wanghaochong"
 date: "`r Sys.Date()`"
 output:
   pdf_document:
@@ -22,24 +22,28 @@ knitr::opts_chunk$set(echo = FALSE,error = FALSE, warning = FALSE, message = FAL
                       out.width = "100%", split = FALSE, fig.align = "center")
 #load library
 library(tidyverse)
+install.packages("kableExtra")
 library(kableExtra)
 library(lubridate)
 library(scales)
 library(plotly)
+install.packages("patchwork")
 library(patchwork)
+install.packages("ggrepel")
 library(ggrepel)
+
 ```
 
 # 你的主要发现
 
 1. 发现1
-白沙洲的房源最多、朝南的房型最多
-1. 发现2
-三室的房型最多
-1. 发现3
-板楼结构的房源最多
 
-# # 数据介绍
+1. 发现2
+  
+1. 发现3
+    
+
+# 数据介绍
 
 本报告**链家**数据获取方式如下：
     
@@ -253,7 +257,7 @@ library(showtex)
 # 绘制不同区域的总价箱线图
 ggplot(lj, aes(x = property_region, y = price_ttl, fill = property_region)) +
   geom_boxplot() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + # 如果区域名太长，可以旋转标签
   ggtitle("不同区域对总价的影响") +
   xlab("区域") +
   ylab("总价")
@@ -269,9 +273,9 @@ ggplot(lj, aes(x = building_area, y = price_ttl)) +
 发现：
 
 - 发现1
-同区域不同面积对房价的影响不同
+不同区域、面积房价差异很大，没有合适的趋势
 - 发现2
-大部分面积的房价波动不大，少部分大面积建筑的房价会有极端值
+面积对房价的影响比较稳定
 
 ## 探索问题3
 楼层、装修、单价的交互影响
@@ -310,3 +314,6 @@ ggplot(lj, aes(x = decoration, y = price_ttl, fill = decoration)) +
 多变量的数据分析虽然复杂， 但是在综合方面可以得到有效的趋势和一些结论的推断
 
 用1-3段话总结你的发现。
+
+
+
